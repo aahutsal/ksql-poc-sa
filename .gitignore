@@ -11,3 +11,4 @@ pom.xml.asc
 /.prepl-port
 .hgignore
 .hg/
+/confluent-hub-components/confluentinc-kafka-connect-jdbc/confluentinc-kafka-connect-jdbc/

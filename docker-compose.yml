@@ -29,6 +29,9 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - ./confluent-connect:/etc/kafka/connect
 
   schema-registry:
     image: confluentinc/cp-schema-registry
@@ -61,7 +64,8 @@ services:
       KSQL_KSQL_CONNECT_WORKER_CONFIG: "/connect/connect.properties"
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       KSQL_KSQL_SERVICE_ID: confluent_rmoff_01
-      KSQL_CONNECT_GROUP_ID: "ksql-connect-cluster"
+#      KSQL_TOPIC_CREATION_ENABLED: "true"
+      KSQL_CONNECT_GROUP_ID: "connect-source-postgresql"
       KSQL_CONNECT_BOOTSTRAP_SERVERS: "broker:9092"
       KSQL_CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
       KSQL_CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
@@ -74,8 +78,12 @@ services:
       KSQL_CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       KSQL_CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
       KSQL_CONNECT_PLUGIN_PATH: "/usr/share/kafka/plugins"
+      # Need KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" in broker configuration for level1.ksql
+      # KSQL_KSQL_QUERIES_FILE: "/tmp/scripts/level1.ksql"
     volumes:
+      - ./confluent-connect:/etc/ksqldb/connect
       - ./confluent-hub-components/confluentinc-kafka-connect-jdbc:/usr/share/kafka/plugins/jdbc
+      - .:/tmp/scripts/
 
   ksqldb-cli:
     image: confluentinc/ksqldb-cli:0.21.0
@@ -99,6 +107,37 @@ services:
     volumes:                                                                              
       - ./postgresql/custom-config.conf:/etc/postgresql/postgresql.conf                     
     command: postgres -c config_file=/etc/postgresql/postgresql.conf                      
+
+  connect-postgres:
+    image: confluentinc/cp-kafka-connect:latest
+    container_name: connect-postgres
+    hostname: connect-postgres
+    depends_on:
+      - broker
+      - schema-registry
+      - postgres
+
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "broker:9092"
+      CONNECT_REST_PORT: 28083
+      CONNECT_GROUP_ID: "connect-source-postgresql"
+      CONNECT_CONFIG_STORAGE_TOPIC: "ksql-poc-sa-avro-config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "ksql-poc-sa-avro-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "ksql-poc-sa-avro-status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: "io.confluent.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "io.confluent.connect.json.JsonConverter"
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "localhost"
+      CONNECT_LOG4J_ROOT_LOGLEVEL: DEBUG
+      CONNECT_PLUGIN_PATH: "/usr/share/kafka/plugins"
+    volumes:
+      - ./confluent-connect:/etc/kafka-connect/
+      - ./confluent-hub-components/confluentinc-kafka-connect-jdbc:/usr/share/kafka/plugins/jdbc
+    command: connect-standalone /etc/kafka-connect/kafka-connect.properties /etc/kafka-connect/connect.properties 
 
   kowl:
     image: klinux/kowl:master

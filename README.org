@@ -1,14 +1,74 @@
-# ksql-poc-sa
+#+TITLE: KSQL Proof Of Concept Solution Architect position
+#+AUTHOR: Arsen A. Hutsal
+#+EMAIL: aahutsal@gmail.com
+#+LANGUAGE: en
+#+LABEL: KSQL POC SA
 
-FIXME: description
+* ksql-poc-sa
 
-## Installation
+KSQL Proof Of Concept (Solution Architect position)
+* Installation
+*** Clonning Repo
+#+begin_src shell
+  git clone https://github.com/aahutsal/ksql-poc-sa
+  cd ksql-poc-sa
+  docker-compose up
+#+end_src
+
+*** Insatlling KSQL JDBC connectors
+
+#+begin_src shell
+  docker exec -ti ksqldb-server confluent-hub install debezium/debezium-connector-postgresql:1.7.0
+#+end_src
+
+#+begin_src shell
+  docker exec -t ksqldb-server /home/appuser/bin/confluent-hub install --worker-configs=/etc/ksqldb/ksqldb-server.properties --component-dir=/usr/share/kafka/plugins/jdbc --no-prompt confluentinc/kafka-connect-jdbc:10.2.5
+#+end_src
+
+#+RESULTS:
+| Running                                              | in           | a         | --no-prompt | mode      |         |          |      |            |           |          |           |         |     |            |      |                               |
+| Implicit                                             | acceptance   | of        | the         | license   | below:  |          |      |            |           |          |           |         |     |            |      |                               |
+| Confluent                                            | Community    | License   |             |           |         |          |      |            |           |          |           |         |     |            |      |                               |
+| https://www.confluent.io/confluent-community-license |              |           |             |           |         |          |      |            |           |          |           |         |     |            |      |                               |
+| Downloading                                          | component    | Kafka     | Connect     | JDBC      | 10.2.5, | provided | by   | Confluent, | Inc.      | from     | Confluent | Hub     | and | installing | into | /usr/share/kafka/plugins/jdbc |
+| Implicit                                             | confirmation | of        | the         | question: | Do      | you      | want | to         | uninstall | existing | version   | 10.2.5? |     |            |      |                               |
+| Adding                                               | installation | directory | to          | plugin    | path    | in       | the  | following  | files:    |          |           |         |     |            |      |                               |
+| /etc/ksqldb/ksqldb-server.properties                 |              |           |             |           |         |          |      |            |           |          |           |         |     |            |      |                               |
+|                                                      |              |           |             |           |         |          |      |            |           |          |           |         |     |            |      |                               |
+| Completed                                            |              |           |             |           |         |          |      |            |           |          |           |         |     |            |      |                               |
+
+*** Creating databases, connectors, sources and topics
+
+
+#+begin_src shell
+  docker exec -t -u postgres postgres psql postgres -c "CREATE DATABASE kafka OWNER postgres;"
+#+end_src
+
+#+RESULTS:
+
+#+begin_src shell
+docker exec -t -u postgres postgres psql kafka -c "CREATE TABLE results ( \
+       create_date DATE NOT NULL,\
+       customer_id VARCHAR(255) NOT NULL,\
+       charge_type VARCHAR(5) NOT NULL,\
+       sum_amount NUMERIC(10,0) NOT NULL,\
+       count INT NOT NULL)"
+#+end_src
+
+#+RESULTS:
+**** Populating with data
+     #+begin_src shell
+       docker exec -t -u postgres postgres psql customers -c "INSERT INTO customers VALUES ('2021-11-16 08:00:00', 'c-0', 'USAGE', 20.0, 2);"
+#+end_src
+
+#+RESULTS:
+
 
 ## Level1 selector
 
-SELECT FORMAT_TIMESTAMP(FROM_UNIXTIME(windowstart), 'yyyy-MM-dd'), customerId, count(*) as count, SUM(amount) as sumAmount FROM INPUT_STREAM WINDOW TUMBLING (SIZE 1 DAY) GROUP BY customerId EMIT CHANGES;
-
-
+End
+SELECT FORMAT_TIMESTAMP(FROM_UNIXTIME(windowstart), 'yyyy-MM-dd'), customerId, count(*) as CNT, SUM(amount) as SM FROM INPUT_STREAM WINDOW TUMBLING (SIZE 1 DAY) GROUP BY customerId EMIT CHANGES;
+```
 FIXME: explanation
 
     $ java -jar ksql-poc-sa-0.1.0-standalone.jar [args]
@@ -44,3 +104,5 @@ Public License, v. 2.0 are satisfied: GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or (at your
 option) any later version, with the GNU Classpath Exception which is available
 at https://www.gnu.org/software/classpath/license.html.
+
+*** 
