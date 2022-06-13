@@ -63,8 +63,8 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
       KSQL_KSQL_CONNECT_WORKER_CONFIG: "/connect/connect.properties"
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      KSQL_KSQL_SERVICE_ID: confluent_rmoff_01
-#      KSQL_TOPIC_CREATION_ENABLED: "true"
+      KSQL_KSQL_SERVICE_ID: confluent_ksql-poc-sa-_01
+      KSQL_TOPIC_CREATION_ENABLED: "true"
       KSQL_CONNECT_GROUP_ID: "connect-source-postgresql"
       KSQL_CONNECT_BOOTSTRAP_SERVERS: "broker:9092"
       KSQL_CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
@@ -127,8 +127,8 @@ services:
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_KEY_CONVERTER: "io.confluent.connect.json.JsonConverter"
-      CONNECT_VALUE_CONVERTER: "io.confluent.connect.json.JsonConverter"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       CONNECT_REST_ADVERTISED_HOST_NAME: "localhost"
@@ -145,6 +145,6 @@ services:
     depends_on:
       - broker
     ports:
-      - "8080:8080"
+      - "8888:8080"
     environment:
       KAFKA_BROKERS: broker:9092

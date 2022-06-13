@@ -27,9 +27,9 @@ CREATE SOURCE CONNECTOR IF NOT EXISTS "jdbc-connector" WITH (
     "key"='postgres');
 
 
-CREATE OR REPLACE STREAM "input_stream" (id VARCHAR KEY, createTimestamp VARCHAR, customerId VARCHAR, productId VARCHAR, chargeType VARCHAR, amount INTEGER, unit VARCHAR) WITH (KAFKA_TOPIC='input_topic', PARTITIONS=4, REPLICAS=1, VALUE_FORMAT='JSON', timestamp='createTimestamp', timestamp_format='yyyy-MM-dd''T''HH:mm:ss.SSS''Z''');
+CREATE OR REPLACE STREAM "input_stream" (id VARCHAR KEY, createTimestamp VARCHAR, customerId VARCHAR, productId VARCHAR, chargeType VARCHAR, amount INTEGER, unit VARCHAR) WITH (KAFKA_TOPIC='input_topic', VALUE_FORMAT='JSON', PARTITIONS=4, REPLICAS=1, timestamp='createTimestamp', timestamp_format='yyyy-MM-dd''T''HH:mm:ss.SSS''Z''');
 
-CREATE OR REPLACE TABLE "output_table" WITH (KAFKA_TOPIC='jdbc.output_topic', KEY_FORMAT='DELIMITED', VALUE_FORMAT='JSON', timestamp='createDate', timestamp_format='yyyy-MM-dd', PARTITIONS=4, REPLICAS=1) AS SELECT FORMAT_TIMESTAMP(FROM_UNIXTIME(windowstart), 'yyyy-MM-dd') as createDate, customerId, chargeType, SUM(amount) as sumAmount, COUNT() as count FROM INPUT_STREAM WINDOW TUMBLING (SIZE 1 DAY) GROUP BY chargeType, customerId EMIT CHANGES;
+CREATE OR REPLACE TABLE "output_table" WITH (KAFKA_TOPIC='jdbc.output_topic', KEY_FORMAT='DELIMITED', VALUE_FORMAT='JSON', timestamp='createDate', timestamp_format='yyyy-MM-dd', PARTITIONS=4, REPLICAS=1) AS SELECT FORMAT_TIMESTAMP(FROM_UNIXTIME(windowstart), 'yyyy-MM-dd') as createDate, customerId, chargeType, SUM(amount) as sumAmount, COUNT() as count FROM "input_stream" WINDOW TUMBLING (SIZE 1 DAY) GROUP BY chargeType, customerId EMIT CHANGES;
 
 
 

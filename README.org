@@ -45,6 +45,7 @@ KSQL Proof Of Concept (Solution Architect position)
 #+end_src
 
 #+RESULTS:
+: CREATE DATABASE
 
 #+begin_src shell
 docker exec -t -u postgres postgres psql kafka -c "CREATE TABLE results ( \
@@ -56,12 +57,14 @@ docker exec -t -u postgres postgres psql kafka -c "CREATE TABLE results ( \
 #+end_src
 
 #+RESULTS:
+: CREATE TABLE
 **** Populating with data
-     #+begin_src shell
-       docker exec -t -u postgres postgres psql customers -c "INSERT INTO customers VALUES ('2021-11-16 08:00:00', 'c-0', 'USAGE', 20.0, 2);"
+#+begin_src shell
+docker exec -t -u postgres postgres psql kafka -c "INSERT INTO customers VALUES ('2021-11-16 08:00:00', 'c-0', 'USAGE', 20.0, 2);"
 #+end_src
 
 #+RESULTS:
+: INSERT 0 1
 
 
 ## Level1 selector
